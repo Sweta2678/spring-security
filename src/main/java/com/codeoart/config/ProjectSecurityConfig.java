@@ -1,11 +1,17 @@
 package com.codeoart.config;
 
+import java.util.Collections;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -23,14 +29,32 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// Authentication based on our requirement.
 
-		http.authorizeRequests((requests) -> requests.antMatchers("/myAccount").authenticated());
-		http.authorizeRequests((requests) -> requests.antMatchers("/myCards").authenticated());
-		http.authorizeRequests((requests) -> requests.antMatchers("/myLoans").authenticated());
-		http.authorizeRequests((requests) -> requests.antMatchers("/balance").authenticated());
-		http.authorizeRequests((requests) -> requests.antMatchers("/notices").permitAll());
-		http.authorizeRequests((requests) -> requests.antMatchers("/contact").permitAll());
-		http.formLogin();
-		http.httpBasic();
+		http.cors().configurationSource(new CorsConfigurationSource() {
+			
+			@Override
+			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+				CorsConfiguration configuration = new CorsConfiguration();
+				configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+				configuration.setAllowedMethods(Collections.singletonList("*"));
+				configuration.setAllowCredentials(true);
+				configuration.setAllowedHeaders(Collections.singletonList("*"));
+				configuration.setMaxAge(3600L);
+				return configuration;
+			}
+		}).and().csrf().disable().
+		authorizeRequests().antMatchers("/myAccount").authenticated().antMatchers("/myBalance").authenticated()
+		.antMatchers("/myLoans").authenticated().antMatchers("/myCards").authenticated()
+		.antMatchers("/user").authenticated().antMatchers("/notices").permitAll()
+		.antMatchers("/contact").permitAll().and().httpBasic();
+		
+//		http.authorizeRequests((requests) -> requests.antMatchers("/myAccount").authenticated());
+//		http.authorizeRequests((requests) -> requests.antMatchers("/myCards").authenticated());
+//		http.authorizeRequests((requests) -> requests.antMatchers("/myLoans").authenticated());
+//		http.authorizeRequests((requests) -> requests.antMatchers("/balance").authenticated());
+//		http.authorizeRequests((requests) -> requests.antMatchers("/notices").permitAll());
+//		http.authorizeRequests((requests) -> requests.antMatchers("/contact").permitAll());
+//		http.formLogin();
+//		http.httpBasic();
 
 		// deny all the requests::
 		// http.authorizeRequests((requests) ->
