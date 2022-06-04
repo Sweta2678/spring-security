@@ -30,24 +30,41 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// Authentication based on our requirement.
 
+		// CORS policy -- started
+		// CORS policy related, if request tryint to access from another domain.
 		http.cors().configurationSource(new CorsConfigurationSource() {
-			
+
 			@Override
 			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 				CorsConfiguration configuration = new CorsConfiguration();
 				configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-				configuration.setAllowedMethods(Collections.singletonList("*"));
+				configuration.setAllowedMethods(Collections.singletonList("*")); // e.g GET/POST/PUT/DELETE
 				configuration.setAllowCredentials(true);
 				configuration.setAllowedHeaders(Collections.singletonList("*"));
 				configuration.setMaxAge(3600L);
 				return configuration;
+				// CORS properties ended
 			}
-		}).and().csrf().ignoringAntMatchers("/contact").csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().
-		authorizeRequests().antMatchers("/myAccount").authenticated().antMatchers("/myBalance").authenticated()
-		.antMatchers("/myLoans").authenticated().antMatchers("/myCards").authenticated()
-		.antMatchers("/user").authenticated().antMatchers("/notices").permitAll()
-		.antMatchers("/contact").permitAll().and().httpBasic();
-		
+		}).and()
+				// .csrf().disable() - it will disable csrf for each and everything
+				.csrf().ignoringAntMatchers("/contact")
+				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and()
+				// .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().
+				// //csfr token will generate
+				.authorizeRequests()
+				.antMatchers("/myAccount").hasRole("USER")
+//				.antMatchers("/myAccount").hasAuthority("WRITE")
+				//.antMatchers("/myAccount").authenticated()
+//				.antMatchers("/myBalance").hasAuthority("READ")
+//				.antMatchers("/myLoans").hasAuthority("DELETE")
+				.antMatchers("/myBalance").hasAnyRole("USER","ADMIN")
+				.antMatchers("/myLoans").hasRole("ROOT")
+				.antMatchers("/myCards").authenticated()
+				.antMatchers("/user").authenticated()
+				.antMatchers("/notices").permitAll()
+				.antMatchers("/contact").permitAll()
+				.and().httpBasic();
+
 //		http.authorizeRequests((requests) -> requests.antMatchers("/myAccount").authenticated());
 //		http.authorizeRequests((requests) -> requests.antMatchers("/myCards").authenticated());
 //		http.authorizeRequests((requests) -> requests.antMatchers("/myLoans").authenticated());
@@ -85,7 +102,7 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
 	 * auth.userDetailsService(userDetailServie); }
 	 */
 
-	//via default JDBC implementation - JdbcUserDetailsManager
+	// via default JDBC implementation - JdbcUserDetailsManager
 //	@Bean
 //	public UserDetailsService userDetails(DataSource dataSource) {
 //		return new JdbcUserDetailsManager(dataSource);
@@ -94,6 +111,6 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
-		//SCryptPasswordEncoder();
+		// SCryptPasswordEncoder();
 	}
 }

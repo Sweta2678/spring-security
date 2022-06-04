@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
 /**
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @ComponentScans({@ComponentScan("com.codeoart.controller"),@ComponentScan("com.codeoart.config")})
 @EnableJpaRepositories("com.codeoart.repository")
 @EntityScan("com.codeoart.model")
-
+@EnableWebSecurity(debug = true)
 public class SpringSecurityBasicApplication {
 
 	/**
