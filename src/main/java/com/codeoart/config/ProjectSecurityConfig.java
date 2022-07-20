@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import com.codeoart.filter.AuthoritiesLoggingAfterFilter;
 import com.codeoart.filter.AuthoritiesLoggingAtFilter;
+import com.codeoart.filter.JWTTokenGeneratorFilter;
+import com.codeoart.filter.JWTTokenValidatorFilter;
 import com.codeoart.filter.RequestValidationBeforeFilter;
 
 @Configuration
@@ -39,41 +41,45 @@ public class ProjectSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// CORS policy -- started
 		// CORS policy related, if request tryint to access from another domain.
-		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().
-		cors().configurationSource(new CorsConfigurationSource() {
-			@Override
-			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-				CorsConfiguration configuration = new CorsConfiguration();
-				configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-				configuration.setAllowedMethods(Collections.singletonList("*")); // e.g GET/POST/PUT/DELETE
-				configuration.setAllowCredentials(true);
-				configuration.setAllowedHeaders(Collections.singletonList("*"));
-				configuration.setExposedHeaders(Arrays.asList("Authorization"));
-				configuration.setMaxAge(3600L);
-				return configuration;
-				// CORS properties ended
-			}
-		}).and()
+		http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().cors()
+				.configurationSource(new CorsConfigurationSource() {
+					@Override
+					public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+						CorsConfiguration configuration = new CorsConfiguration();
+						configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+						configuration.setAllowedMethods(Collections.singletonList("*")); // e.g GET/POST/PUT/DELETE
+						configuration.setAllowCredentials(true);
+						configuration.setAllowedHeaders(Collections.singletonList("*"));
+						configuration.setExposedHeaders(Arrays.asList("Authorization"));
+						configuration.setMaxAge(3600L);
+						return configuration;
+						// CORS properties ended
+					}
+				// @formatter:off
+				}).and()
 				// .csrf().disable() - it will disable csrf for each and everything
 				.csrf().disable()
 				.addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
 				.addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
-				.addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
+				//.addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
+				//.addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+				//.addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
 				// .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()).and().
-				// //csfr token will generate
+				//csfr token will generate
 				.authorizeRequests()
 				.antMatchers("/myAccount").hasRole("USER")
-//				.antMatchers("/myAccount").hasAuthority("WRITE")
+				//.antMatchers("/myAccount").hasAuthority("WRITE")
 				//.antMatchers("/myAccount").authenticated()
 //				.antMatchers("/myBalance").hasAuthority("READ")
 //				.antMatchers("/myLoans").hasAuthority("DELETE")
 				.antMatchers("/myBalance").hasAnyRole("USER","ADMIN")
 				.antMatchers("/myLoans").hasRole("ROOT")
-				.antMatchers("/myCards").authenticated()
+				.antMatchers("/myCards").hasAnyRole("USER","ADMIN")
 				.antMatchers("/user").authenticated()
 				.antMatchers("/notices").permitAll()
 				.antMatchers("/contact").permitAll()
 				.and().httpBasic();
+        // @formatter:on
 
 //		http.authorizeRequests((requests) -> requests.antMatchers("/myAccount").authenticated());
 //		http.authorizeRequests((requests) -> requests.antMatchers("/myCards").authenticated());
